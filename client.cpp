@@ -3,7 +3,11 @@
 #include <cstring>
 #include <unistd.h>
 #include <arpa/inet.h>
+
+// Only include Emscripten headers if we are actually compiling with Emscripten
+#ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
+#endif
 
 // If you want a specific function to be callable from JavaScript, 
 // declare it outside of main like this:
