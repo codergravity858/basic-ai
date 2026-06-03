@@ -3,7 +3,6 @@
 #include <cstring>
 #include <unistd.h>
 #include <arpa/inet.h>
-#def VERBOSE_CONNECTION
 int main() {
     const char* SERVER_IP = "127.0.0.1";
     const int SERVER_PORT = 49153;
