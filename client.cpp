@@ -6,7 +6,7 @@
 
 int main() {
     const char* SERVER_IP = "127.0.0.1";
-    const int SERVER_PORT = 12345;
+    const int SERVER_PORT = 49153;
 
     // 1. Create socket
     int sock = socket(AF_INET, SOCK_STREAM, 0);
