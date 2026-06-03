@@ -92,7 +92,7 @@ class ActiveLearningBot:
 
 def start_server():
     host = '127.0.0.1'
-    port = 12345
+    port = 49153
     
     bot = ActiveLearningBot()
     bot.load_transcripts() 
