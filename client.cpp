@@ -3,6 +3,23 @@
 #include <cstring>
 #include <unistd.h>
 #include <arpa/inet.h>
+
+// Only include Emscripten headers if we are actually compiling with Emscripten
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif
+
+// If you want a specific function to be callable from JavaScript, 
+// declare it outside of main like this:
+#ifdef __EMSCRIPTEN__
+extern "C" {
+    EMSCRIPTEN_KEEPALIVE
+    void trigger_ping() {
+        std::cout << "[Wasm] Pinged from JavaScript!" << std::endl;
+    }
+}
+#endif
+
 int main() {
     const char* SERVER_IP = "127.0.0.1";
     const int SERVER_PORT = 49153;
@@ -22,15 +39,19 @@ int main() {
         close(sock);
         return -1;
     }
+
 #ifdef VERBOSE_CONNECTION
     std::cout << "Connected to Active Learning AI Engine.\n" << std::endl;
 #endif
+
     std::string user_input;
     char buffer[1024];
 
     while (true) {
         std::cout << "[You]: ";
-        std::getline(std::cin, user_input);
+        if (!std::getline(std::cin, user_input)) {
+            break; // Handle EOF safely
+        }
 
         if (user_input.empty()) continue;
         if (user_input == "exit") break;
@@ -53,12 +74,12 @@ int main() {
             if (feedback == "/good") {
                 send(sock, "/commit", 7, 0);
                 std::memset(buffer, 0, sizeof(buffer));
-                recv(sock, buffer, sizeof(buffer) - 1, 0); // Wait for sync confirmation
+                recv(sock, buffer, sizeof(buffer) - 1, 0); 
                 std::cout << "[System]: " << buffer << std::endl;
             } else {
                 send(sock, "/skip", 5, 0);
             }
-            std::cout << "..." << std::endl;
+            std::cout << "------------------------------------------------" << std::endl;
         } else {
             break;
         }
