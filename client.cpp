@@ -3,7 +3,7 @@
 #include <cstring>
 #include <unistd.h>
 #include <arpa/inet.h>
-
+#def VERBOSE_CONNECTION
 int main() {
     const char* SERVER_IP = "127.0.0.1";
     const int SERVER_PORT = 49153;
@@ -17,13 +17,15 @@ int main() {
     inet_pton(AF_INET, SERVER_IP, &server_addr.sin_addr);
 
     if (connect(sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+        #ifdef VERBOSE_CONNECTION
         std::cerr << "Connection failed!" << std::endl;
+        #endif
         close(sock);
         return -1;
     }
-
+#ifdef VERBOSE_CONNECTION
     std::cout << "Connected to Active Learning AI Engine.\n" << std::endl;
-
+#endif
     std::string user_input;
     char buffer[1024];
 
@@ -57,7 +59,7 @@ int main() {
             } else {
                 send(sock, "/skip", 5, 0);
             }
-            std::cout << "------------------------------------------------" << std::endl;
+            std::cout << "..." << std::endl;
         } else {
             break;
         }
