@@ -8,60 +8,61 @@ int main() {
     const char* SERVER_IP = "127.0.0.1";
     const int SERVER_PORT = 49153;
 
-    // 1. Create socket
     int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0) {
-        std::cerr << "Error creating socket." << std::endl;
-        return -1;
-    }
+    if (sock < 0) return -1;
 
-    // 2. Define server address
     sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(SERVER_PORT);
     inet_pton(AF_INET, SERVER_IP, &server_addr.sin_addr);
 
-    // 3. Connect to Python server
-    std::cout << "Connecting to AI server..." << std::endl;
     if (connect(sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
-        std::cerr << "Connection failed! Make sure server.py is running." << std::endl;
+        std::cerr << "Connection failed!" << std::endl;
         close(sock);
         return -1;
     }
 
-    std::cout << "Connected! Type your message (type 'exit' to quit):\n" << std::endl;
+    std::cout << "Connected to Active Learning AI Engine.\n" << std::endl;
 
     std::string user_input;
     char buffer[1024];
 
-    // 4. Chat Loop
     while (true) {
         std::cout << "[You]: ";
         std::getline(std::cin, user_input);
 
         if (user_input.empty()) continue;
+        if (user_input == "exit") break;
 
-        // Send to Python server
+        // 1. Send the actual question
         send(sock, user_input.c_str(), user_input.length(), 0);
 
-        if (user_input == "exit" || user_input == "bye") {
-            break;
-        }
-
-        // Receive response from Python server
+        // 2. Receive the AI response
         std::memset(buffer, 0, sizeof(buffer));
         int bytes_received = recv(sock, buffer, sizeof(buffer) - 1, 0);
         
         if (bytes_received > 0) {
             std::cout << "[AI]: " << buffer << std::endl;
+            
+            // 3. Prompt user for dynamic training feedback
+            std::string feedback;
+            std::cout << "--> Was this helpful? (/good to train model, /skip to pass): ";
+            std::getline(std::cin, feedback);
+            
+            if (feedback == "/good") {
+                send(sock, "/commit", 7, 0);
+                std::memset(buffer, 0, sizeof(buffer));
+                recv(sock, buffer, sizeof(buffer) - 1, 0); // Wait for sync confirmation
+                std::cout << "[System]: " << buffer << std::endl;
+            } else {
+                send(sock, "/skip", 5, 0);
+            }
+            std::cout << "------------------------------------------------" << std::endl;
         } else {
-            std::cout << "[System]: Server disconnected." << std::endl;
             break;
         }
     }
 
-    // 5. Cleanup
     close(sock);
-    std::cout << "Chat session ended." << std::endl;
     return 0;
 }
